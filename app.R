@@ -11,7 +11,7 @@ library(shiny)
 library(plotly)
 source('util.R')
 
-df <- get_source_data()
+source_df <- get_source_data()
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -24,9 +24,9 @@ ui <- fluidPage(
         sidebarPanel(
             sliderInput("years",
                         "Jahre:",
-                        min = min(df$jahr),
-                        max = max(df$jahr),
-                        value = c(min(df$jahr), max(df$jahr)),
+                        min = min(source_df$jahr),
+                        max = max(source_df$jahr),
+                        value = c(min(source_df$jahr), max(source_df$jahr)),
                         sep = ""
                         )
         ),
@@ -43,17 +43,27 @@ ui <- fluidPage(
     )
 )
 
-# Define server logic required to draw a histogram
+################################################################################
+### OUTPUT FUNCTIONS and other reactive expressions ############################
+################################################################################
 server <- function(input, output) {
+  
+  filtered_data <- reactive({
+    df <-source_df[source_df$jahr >= input$years[1] & source_df$jahr <= input$years[2],]
+    return(df)
+  })
+  
   output$bar_plot <- renderPlot({
+    df <- filtered_data()
     ggplot(
-      df[df$jahr >= input$years[1] & df$jahr <= input$years[2],],
+      df,
       mapping=aes(x = `jahr`, fill=`x3_satzer`)
       ) +
       geom_bar(position='stack', color='black')
   })
-  #
+  
   output$bar_plot_plotly <- renderPlotly({
+    df <- filtered_data()
     plot <- plot_ly(
       x = unique(df$jahr),
       type = 'bar'
@@ -61,8 +71,9 @@ server <- function(input, output) {
   })
   #
   output$bar_plot_plotly_v2 <- renderPlotly({
+    df <- filtered_data()
     gg <- ggplot(
-      df[df$jahr >= input$years[1] & df$jahr <= input$years[2],],
+      df,
       mapping=aes(x = `jahr`, fill=`x3_satzer`)
     )
     plot <- gg + geom_bar(position='stack')
