@@ -8,6 +8,7 @@
 #
 
 library(shiny)
+library(plotly)
 source('util.R')
 
 df <- get_source_data()
@@ -25,13 +26,19 @@ ui <- fluidPage(
                         "Jahre:",
                         min = min(df$jahr),
                         max = max(df$jahr),
-                        value = c(min(df$jahr), max(df$jahr))
+                        value = c(min(df$jahr), max(df$jahr)),
+                        sep = ""
                         )
         ),
 
         # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("bar_plot")
+          
+          tabsetPanel(type = "tabs",
+                      tabPanel("Matches", plotOutput("bar_plot")),
+                      tabPanel("Plotly", plotlyOutput("bar_plot_plotly")),
+                      tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
+          )
         )
     )
 )
@@ -44,6 +51,22 @@ server <- function(input, output) {
       mapping=aes(x = `jahr`, fill=`x3_satzer`)
       ) +
       geom_bar(position='stack', color='black')
+  })
+  #
+  output$bar_plot_plotly <- renderPlotly({
+    plot <- plot_ly(
+      x = unique(df$jahr),
+      type = 'bar'
+    )
+  })
+  #
+  output$bar_plot_plotly_v2 <- renderPlotly({
+    gg <- ggplot(
+      df[df$jahr >= input$years[1] & df$jahr <= input$years[2],],
+      mapping=aes(x = `jahr`, fill=`x3_satzer`)
+    )
+    plot <- gg + geom_bar(position='stack')
+    ggplotly(plot)
   })
 }
 
