@@ -7,6 +7,9 @@ get_source_data <- function(){
   df <- read_sheet('https://docs.google.com/spreadsheets/d/1lI-jzdEPqdN7T8rvJEr-7wfv-34ZE9DpFVnR5JRegEY')
   df <- df %>% drop_na(Jahr)
   df <- clean_names(df)
+  df$spiele_gesamt <- df$spiel_gewonnen_team_a + df$spiel_gewonnen_team_b
+  df$saetze_gesamt <- df$satze_gewonnen_team_a + df$satze_gewonnen_team_b
+  df$punkte_gesamt <- df$punkte_gewonnen_team_a + df$punkte_gewonnen_team_b
   return(df)
 }
 
@@ -82,4 +85,14 @@ get_df_for_player_stats <- function(df){
   df_out$punkte_gesamt <- df_out$punkte_gewonnen + df_out$punkte_verloren
   df_out$punktedifferenz <- df_out$punkte_gewonnen - df_out$punkte_verloren
   return(df_out)
+}
+
+get_df_for_matches_and_3satz_bar_and_line_chart <- function(df, grouping_column){
+  chart_data <- df %>%
+    group_by({{ grouping_column }}, spiele_gesamt) %>%
+    summarize(
+      count = n(),
+      x3satz_percentage = mean(x3_satzer)
+    )
+  return(chart_data)
 }

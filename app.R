@@ -35,9 +35,9 @@ ui <- fluidPage(
         mainPanel(
           
           tabsetPanel(type = "tabs",
-                      tabPanel("Matches", plotOutput("bar_plot")),
-                      tabPanel("Plotly", plotlyOutput("bar_plot_plotly")),
-                      tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
+                      tabPanel("Matches", plotOutput("bar_plot"))
+                      #,tabPanel("Plotly", plotlyOutput("bar_plot_plotly"))
+                      #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
           )
         )
     )
@@ -52,32 +52,25 @@ server <- function(input, output) {
     df <-source_df[source_df$jahr >= input$years[1] & source_df$jahr <= input$years[2],]
     return(df)
   })
-  
+  #
   output$bar_plot <- renderPlot({
     df <- filtered_data()
-    ggplot(
-      df,
-      mapping=aes(x = `jahr`, fill=`x3_satzer`)
-      ) +
-      geom_bar(position='stack', color='black')
-  })
-  
-  output$bar_plot_plotly <- renderPlotly({
-    df <- filtered_data()
-    plot <- plot_ly(
-      x = unique(df$jahr),
-      type = 'bar'
+    chart_data <- get_df_for_matches_and_3satz_bar_and_line_chart(df, jahr)
+    plot <- ggplot(chart_data, mapping=aes(x=jahr))
+    plot <- plot + geom_bar(aes(y = count, group=1), stat='identity', position = "dodge")
+    plot <- plot + ylab("Anzahl Matches")
+    plot <- plot + geom_line(
+      aes(y = x3satz_percentage * max(chart_data$count), group=1),
+      color = "red"
     )
-  })
-  #
-  output$bar_plot_plotly_v2 <- renderPlotly({
-    df <- filtered_data()
-    gg <- ggplot(
-      df,
-      mapping=aes(x = `jahr`, fill=`x3_satzer`)
+    plot <- plot + scale_y_continuous(
+      name = "Anzahl Matches",
+      sec.axis = sec_axis(~./max(chart_data$count), name = "Prozent 3-Sätzer")
     )
-    plot <- gg + geom_bar(position='stack')
-    ggplotly(plot)
+    plot <- plot + theme_minimal()
+    print(plot)
+    #ggplotly(plot)
+    # TODO move this code and the corresponding df prep into its own .R file and do so for each subsequent plot
   })
 }
 
