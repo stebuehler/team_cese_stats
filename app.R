@@ -22,12 +22,18 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            sliderInput("years",
-                        "Jahre:",
-                        min = min(source_df$jahr),
-                        max = max(source_df$jahr),
-                        value = c(min(source_df$jahr), max(source_df$jahr)),
-                        sep = ""
+            # sliderInput("years",
+            #             "Jahre:",
+            #             min = min(source_df$jahr),
+            #             max = max(source_df$jahr),
+            #             value = c(min(source_df$jahr), max(source_df$jahr)),
+            #             sep = ""
+            #             )
+            selectInput("years",
+                        "Jahr(e)",
+                        choices = sort(unique(source_df$jahr), decreasing=TRUE),
+                        multiple = TRUE,
+                        selected = max(source_df$jahr)
                         )
         ),
 
@@ -35,7 +41,7 @@ ui <- fluidPage(
         mainPanel(
           
           tabsetPanel(type = "tabs",
-                      tabPanel("Matches", plotOutput("bar_plot"))
+                      tabPanel("Total Matches", plotOutput("bar_plot_matches"))
                       #,tabPanel("Plotly", plotlyOutput("bar_plot_plotly"))
                       #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
           )
@@ -49,11 +55,11 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   filtered_data <- reactive({
-    df <-source_df[source_df$jahr >= input$years[1] & source_df$jahr <= input$years[2],]
+    df <-source_df[source_df$jahr >= min(input$years) & source_df$jahr <= max(input$years),]
     return(df)
   })
   #
-  output$bar_plot <- renderPlot({
+  output$bar_plot_matches <- renderPlot({
     df <- filtered_data()
     chart_data <- get_df_for_matches_and_3satz_bar_and_line_chart(df, jahr)
     plot <- ggplot(chart_data, mapping=aes(x=jahr))
