@@ -2,6 +2,7 @@
 library(tidyverse)
 library(googlesheets4)
 library(janitor)
+library(formattable)
 
 get_source_data <- function(){
   df <- read_sheet('https://docs.google.com/spreadsheets/d/1lI-jzdEPqdN7T8rvJEr-7wfv-34ZE9DpFVnR5JRegEY')
@@ -95,4 +96,48 @@ get_df_for_matches_and_3satz_bar_and_line_chart <- function(df, grouping_column)
       x3satz_percentage = mean(x3_satzer)
     )
   return(chart_data)
+}
+
+get_player_stats <- function(df){
+  player_stats <- df %>% group_by(spieler) %>%
+    summarise(
+      spiele_gesamt = sum(spiele_gesamt),
+      spiele_gewonnen = sum(spiele_gewonnen),
+      spiele_gewonnen_prozent = spiele_gewonnen / spiele_gesamt,
+      saetze_gesamt = sum(saetze_gesamt),
+      saetze_gewonnen = sum(saetze_gewonnen),
+      saetze_gewonnen_prozent = saetze_gewonnen / saetze_gesamt,
+      punkte_gesamt = sum(punkte_gesamt),
+      punkte_gewonnen = sum(punkte_gewonnen),
+      punkte_gewonnen_prozent = punkte_gewonnen / punkte_gesamt,
+      tiebreaker_column = spiele_gewonnen_prozent + 0.01 * saetze_gewonnen_prozent + 0.0001 * punkte_gewonnen_prozent,
+    ) %>%
+    as.data.frame() %>%
+    arrange(., desc(tiebreaker_column))%>% # order rows
+    mutate(rang = seq.int(nrow(.))) %>% 
+    mutate(Rang = rang) %>% # pretty names
+    mutate(Spieler = spieler) %>%
+    mutate("Spiele gesamt" = spiele_gesamt) %>%
+    mutate("Spiele gewonnen" = spiele_gewonnen) %>%
+    mutate("Spiele gewonnen (%)" = percent(spiele_gewonnen_prozent, 1)) %>%
+    mutate("Saetze gesamt" = saetze_gesamt) %>%
+    mutate("Saetze gewonnen" = saetze_gewonnen) %>%
+    mutate("Saetze gewonnen (%)" = percent(saetze_gewonnen_prozent, 1)) %>%
+    mutate("Punkte gesamt" = punkte_gesamt) %>%
+    mutate("Punkte gewonnen" = punkte_gewonnen) %>%
+    mutate("Punkte gewonnen (%)" = percent(punkte_gewonnen_prozent, 1)) %>%
+    select( # reorder columns
+      Rang,
+      Spieler,
+      "Spiele gesamt",
+      "Spiele gewonnen",
+      "Spiele gewonnen (%)",
+      "Saetze gesamt",
+      "Saetze gewonnen",
+      "Saetze gewonnen (%)",
+      "Punkte gesamt",
+      "Punkte gewonnen",
+      "Punkte gewonnen (%)"
+    )
+  return(player_stats)
 }

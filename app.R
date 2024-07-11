@@ -22,27 +22,21 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            # sliderInput("years",
-            #             "Jahre:",
-            #             min = min(source_df$jahr),
-            #             max = max(source_df$jahr),
-            #             value = c(min(source_df$jahr), max(source_df$jahr)),
-            #             sep = ""
-            #             )
             selectInput("years",
                         "Jahr(e)",
                         choices = sort(unique(source_df$jahr), decreasing=TRUE),
                         multiple = TRUE,
                         selected = max(source_df$jahr)
-                        )
+                        ),
+            width = 2
         ),
 
         # Show a plot of the generated distribution
         mainPanel(
           
           tabsetPanel(type = "tabs",
-                      tabPanel("Total Matches", plotOutput("bar_plot_matches"))
-                      #,tabPanel("Plotly", plotlyOutput("bar_plot_plotly"))
+                      tabPanel("Total Matches", plotOutput("bar_plot_matches")),
+                      tabPanel("Spieler Statistik", dataTableOutput("table_by_player"))
                       #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
           )
         )
@@ -77,6 +71,10 @@ server <- function(input, output) {
     print(plot)
     #ggplotly(plot)
     # TODO move this code and the corresponding df prep into its own .R file and do so for each subsequent plot
+  })
+  #
+  output$table_by_player <- renderDataTable({
+    get_player_stats(get_df_for_player_stats(filtered_data()))
   })
 }
 
