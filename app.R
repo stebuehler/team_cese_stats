@@ -9,6 +9,8 @@
 
 library(shiny)
 library(plotly)
+library(DT)
+library(dplyr)
 source('util.R')
 
 source_df <- get_source_data()
@@ -35,8 +37,8 @@ ui <- fluidPage(
         mainPanel(
           
           tabsetPanel(type = "tabs",
-                      tabPanel("Total Matches", plotOutput("bar_plot_matches")),
-                      tabPanel("Spieler Statistik", dataTableOutput("table_by_player"))
+                      tabPanel("Spieler Statistik", dataTableOutput("table_by_player")),
+                      tabPanel("Total Matches", plotOutput("bar_plot_matches"))
                       #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
           )
         )
@@ -73,9 +75,17 @@ server <- function(input, output) {
     # TODO move this code and the corresponding df prep into its own .R file and do so for each subsequent plot
   })
   #
-  output$table_by_player <- renderDataTable({
-    get_player_stats(get_df_for_player_stats(filtered_data()))
-  })
+  output$table_by_player <- renderDataTable(
+    datatable(
+      get_player_stats(
+        get_df_for_player_stats(filtered_data())),
+      options = list(dom = "t", pageLength = 99)) %>% 
+      formatPercentage(c(
+        "Spiele gewonnen (%)",
+        "Saetze gewonnen (%)",
+        "Punkte gewonnen (%)"
+      ), 1)
+  )
 }
 
 # Run the application 
