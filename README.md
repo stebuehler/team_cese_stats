@@ -1,4 +1,6 @@
 # team_cese_stats
 ## To Do
-* Permanent solution for googlesheets authorisation token stored in .secret folder
-* Refactoring of code - each chart with its file
+* Starting page: Player rank chart (very simple and narrow - mobile friendly)
+* Add team stats.
+* Start adding charts from google sheet.
+* Refactoring of code - each chart with its file?
