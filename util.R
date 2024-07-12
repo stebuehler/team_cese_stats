@@ -5,6 +5,7 @@ library(janitor)
 library(formattable)
 
 get_source_data <- function(){
+  gs4_auth(cache=".secrets", email="stibe.buehler@gmail.com")
   df <- read_sheet('https://docs.google.com/spreadsheets/d/1lI-jzdEPqdN7T8rvJEr-7wfv-34ZE9DpFVnR5JRegEY')
   df <- df %>% drop_na(Jahr)
   df <- clean_names(df)
