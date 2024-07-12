@@ -1,5 +1,3 @@
-# util functions to read and transform team cese dataframe for specific stats
-library(tidyverse)
 library(googlesheets4)
 library(janitor)
 library(formattable)
