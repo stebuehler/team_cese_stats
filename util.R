@@ -1,6 +1,7 @@
 library(googlesheets4)
 library(janitor)
 library(formattable)
+library(tidyr)
 
 get_source_data <- function(){
   gs4_auth(cache=".secrets", email="stibe.buehler@gmail.com")
