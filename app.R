@@ -37,7 +37,7 @@ ui <- fluidPage(
         mainPanel(
           
           tabsetPanel(type = "tabs",
-                      tabPanel("Spieler Statistik", dataTableOutput("table_by_player")),
+                      tabPanel("Spieler Statistik", dataTableOutput("table_by_player", width = "100%")),
                       tabPanel("Total Matches", plotOutput("bar_plot_matches"))
                       #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
           )
@@ -79,7 +79,9 @@ server <- function(input, output) {
     datatable(
       get_player_stats(
         get_df_for_player_stats(filtered_data())),
-      options = list(dom = "t", pageLength = 99)) %>% 
+      options = list(dom = "t", pageLength = 99),
+      rownames = FALSE
+      ) %>% 
       formatPercentage(c(
         "Spiele gewonnen (%)",
         "Saetze gewonnen (%)",
