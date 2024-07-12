@@ -6,6 +6,7 @@ my_packages = c(
   "shiny",
   "DT",
   "dplyr",
+  "tidyr",
   "googlesheets4",
   "plotly",
   "janitor",
