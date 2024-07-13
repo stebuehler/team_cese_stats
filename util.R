@@ -141,3 +141,14 @@ get_player_stats <- function(df){
     )
   return(player_stats)
 }
+
+get_player_stats_short <- function(player_stats){
+  player_stats <- player_stats %>%
+  select(
+    Rang,
+    Spieler,
+    "Spiele gesamt",
+    "Spiele gewonnen (%)"
+  )
+  return(player_stats)
+}
