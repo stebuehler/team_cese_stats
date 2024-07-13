@@ -39,6 +39,7 @@ ui <- fluidPage(
           tabsetPanel(type = "tabs",
                       tabPanel("Rangliste", dataTableOutput("table_by_player_short")),
                       tabPanel("Spieler Statistik", dataTableOutput("table_by_player", width = "100%")),
+                      tabPanel("Team Statistik", dataTableOutput("table_by_team", width = "100%")),
                       tabPanel("Total Matches", plotOutput("bar_plot_matches"))
                       #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
           )
@@ -79,8 +80,8 @@ server <- function(input, output) {
   output$table_by_player_short <- renderDataTable(
     datatable(
       get_player_stats_short(
-        get_player_stats(
-          get_df_for_player_stats(filtered_data()))),
+        filtered_data()
+        ),
       options = list(dom = "t", pageLength = 99),
       rownames = FALSE
     ) %>% 
@@ -91,8 +92,22 @@ server <- function(input, output) {
   #
   output$table_by_player <- renderDataTable(
     datatable(
-      get_player_stats(
-        get_df_for_player_stats(filtered_data())),
+      get_standard_stats(
+        filtered_data(), "Spieler"),
+      options = list(dom = "t", pageLength = 99),
+      rownames = FALSE
+    ) %>%
+      formatPercentage(c(
+        "Spiele gewonnen (%)",
+        "Saetze gewonnen (%)",
+        "Punkte gewonnen (%)"
+      ), 1)
+  )
+  #
+  output$table_by_team <- renderDataTable(
+    datatable(
+      get_standard_stats(
+        filtered_data(), "Team"),
       options = list(dom = "t", pageLength = 99),
       rownames = FALSE
     ) %>% 

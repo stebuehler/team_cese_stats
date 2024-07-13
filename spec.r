@@ -5,6 +5,7 @@ library(formattable)
 source("util.R")
 
 df <- get_source_data()
+xx <- get_standard_stats(df, "spieler")
 df_player <- get_df_for_player_stats(df)
 
 ggplot(df, mapping=aes(x = `jahr`, fill=`x3_satzer`)) +
