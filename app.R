@@ -11,6 +11,7 @@ library(shiny)
 library(plotly)
 library(DT)
 library(dplyr)
+library(shinyWidgets)
 source('util.R')
 
 source_df <- get_source_data()
@@ -30,7 +31,7 @@ ui <- fluidPage(
                         multiple = TRUE,
                         selected = max(source_df$jahr)
             ),
-            radioButtons(
+            radioGroupButtons(
             "scope",
             "Spieler",
             choices = c("Alle", "Team Cese", "Team Cese classic")
