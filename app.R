@@ -29,8 +29,13 @@ ui <- fluidPage(
                         choices = sort(unique(source_df$jahr), decreasing=TRUE),
                         multiple = TRUE,
                         selected = max(source_df$jahr)
-                        ),
-            width = 2
+            ),
+            radioButtons(
+            "scope",
+            "Spieler",
+            choices = c("Alle", "Team Cese", "Team Cese classic")
+            ),
+            width = 3
         ),
 
         # Show a plot of the generated distribution
@@ -53,7 +58,14 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   filtered_data <- reactive({
-    df <-source_df[source_df$jahr >= min(input$years) & source_df$jahr <= max(input$years),]
+    df <- source_df %>%
+      filter(jahr >= min(input$years) & jahr <= max(input$years))
+    if(input$scope == "Team Cese"){
+      df <- df %>% filter(team_cese_match == TRUE)
+    }
+    if(input$scope == "Team Cese classic"){
+      df <- df %>% filter(original_match == TRUE)
+    }
     return(df)
   })
   #
