@@ -24,32 +24,32 @@ ui <- fluidPage(
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
-        sidebarPanel(
-            selectInput("years",
-                        "Jahr(e)",
-                        choices = sort(unique(source_df$jahr), decreasing=TRUE),
-                        multiple = TRUE,
-                        selected = max(source_df$jahr)
-            ),
-            radioGroupButtons(
-            "scope",
-            "Spieler",
-            choices = c("Alle", "Team Cese", "Team Cese classic")
-            ),
-            width = 3
+      sidebarPanel(
+        selectInput(
+          "years",
+          "Jahr(e)",
+          choices = sort(unique(source_df$jahr), decreasing=TRUE),
+          multiple = TRUE,
+          selected = max(source_df$jahr)
         ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-          
-          tabsetPanel(type = "tabs",
-                      tabPanel("Rangliste", dataTableOutput("table_by_player_short")),
-                      tabPanel("Spieler Statistik", dataTableOutput("table_by_player", width = "100%")),
-                      tabPanel("Team Statistik", dataTableOutput("table_by_team", width = "100%")),
-                      tabPanel("Total Matches", plotOutput("bar_plot_matches"))
-                      #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
-          )
+        radioGroupButtons(
+          "scope",
+          "Spieler",
+          choices = c("Alle", "Team Cese", "Team Cese classic")
+        ),
+        width = 3
+      ),
+      #
+      mainPanel(
+        
+        tabsetPanel(type = "tabs",
+                    tabPanel("Rangliste", dataTableOutput("table_by_player_short")),
+                    tabPanel("Spieler Statistik", dataTableOutput("table_by_player", width = "100%")),
+                    tabPanel("Team Statistik", dataTableOutput("table_by_team", width = "100%")),
+                    tabPanel("Total Matches", plotOutput("bar_plot_matches"))
+                    #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
         )
+      )
     )
 )
 
