@@ -37,6 +37,7 @@ for(player in unique(cumulative_stats$Spieler)){
     fill(siegprozent)
   fig <- fig %>% add_trace(y = df_temp$siegprozent, name = player, type = 'scatter', mode = 'lines')  
 }
+fig <- fig %>% layout(yaxis = list(tickformat = "%"))
 fig
 # bar chart
 ggplot(df, mapping=aes(x = `jahr`, fill=`x3_satzer`)) +
