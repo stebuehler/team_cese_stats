@@ -1,13 +1,13 @@
 library(ggplot2)
-library(tidyverse)
+library(plotly)
+library(tidyr)
 library(formattable)
 
 source("util.R")
 
 df <- get_source_data()
-xx <- get_standard_stats(df, "spieler")
 df_player <- get_df_for_player_stats(df) %>% filter(jahr == 2023)
-
+# Data prep line chart
 cumulative_stats <- df_player %>%
   arrange(Spieler, reihenfolge) %>%
   group_by(Spieler) %>%
@@ -15,7 +15,30 @@ cumulative_stats <- df_player %>%
     siegprozent = cumsum(spiele_gewonnen) / cumsum(spiele_gesamt)
   ) %>%
   select(Spieler, reihenfolge, siegprozent)
-
+# pivot and unpivot to have same length entries for all players
+cumulative_stats <- pivot_wider(
+  cumulative_stats,
+  names_from = Spieler,
+  values_from = siegprozent
+  )
+cumulative_stats <- pivot_longer(
+  cumulative_stats,
+  cols = !reihenfolge,
+  names_to = "Spieler",
+  values_to = "siegprozent"
+)
+# line chart
+# TODO percentage formatting
+fig <- plot_ly(x = sort(unique(cumulative_stats$reihenfolge)))
+for(player in unique(cumulative_stats$Spieler)){
+  df_temp <- cumulative_stats %>%
+    filter(Spieler == player) %>%
+    arrange(reihenfolge) %>%
+    fill(siegprozent)
+  fig <- fig %>% add_trace(y = df_temp$siegprozent, name = player, type = 'scatter', mode = 'lines')  
+}
+fig
+# bar chart
 ggplot(df, mapping=aes(x = `jahr`, fill=`x3_satzer`)) +
   geom_bar(position='stack', color='black')
 
