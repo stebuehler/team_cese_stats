@@ -2,10 +2,11 @@ library(googlesheets4)
 library(janitor)
 library(formattable)
 library(tidyr)
+library(dplyr)
 
 get_source_data <- function(){
-  gs4_auth(cache=".secrets", email="stibe.buehler@gmail.com")
-  df <- read_sheet('https://docs.google.com/spreadsheets/d/1lI-jzdEPqdN7T8rvJEr-7wfv-34ZE9DpFVnR5JRegEY')
+  gs4_deauth()
+  df <- read_sheet("https://docs.google.com/spreadsheets/d/1lI-jzdEPqdN7T8rvJEr-7wfv-34ZE9DpFVnR5JRegEY/edit?usp=sharing")
   df <- df %>% drop_na(Jahr)
   df <- clean_names(df)
   df$spiele_gesamt <- df$spiel_gewonnen_team_a + df$spiel_gewonnen_team_b
