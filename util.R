@@ -223,3 +223,28 @@ get_player_stats_short <- function(df){
   )
   return(player_stats)
 }
+
+get_df_for_cumulative_match_percentage <- function(df){
+  df_player <- get_df_for_player_stats(df)
+  # Data prep line chart
+  cumulative_stats <- df_player %>%
+    arrange(Spieler, reihenfolge) %>%
+    group_by(Spieler) %>%
+    mutate(
+      siegprozent = cumsum(spiele_gewonnen) / cumsum(spiele_gesamt)
+    ) %>%
+    select(Spieler, reihenfolge, siegprozent)
+  # pivot and unpivot to have same length entries for all players
+  cumulative_stats <- pivot_wider(
+    cumulative_stats,
+    names_from = Spieler,
+    values_from = siegprozent
+  )
+  cumulative_stats <- pivot_longer(
+    cumulative_stats,
+    cols = !reihenfolge,
+    names_to = "Spieler",
+    values_to = "siegprozent"
+  )
+  return(cumulative_stats)
+}

@@ -6,7 +6,7 @@ library(formattable)
 source("util.R")
 
 df <- get_source_data()
-df_player <- get_df_for_player_stats(df) %>% filter(jahr == 2023)
+df_player <- get_df_for_player_stats(df) %>% filter(jahr == 2022)
 # Data prep line chart
 cumulative_stats <- df_player %>%
   arrange(Spieler, reihenfolge) %>%
@@ -37,7 +37,7 @@ for(player in unique(cumulative_stats$Spieler)){
     fill(siegprozent)
   fig <- fig %>% add_trace(y = df_temp$siegprozent, name = player, type = 'scatter', mode = 'lines')  
 }
-fig <- fig %>% layout(yaxis = list(tickformat = "%"))
+fig <- fig %>% layout(yaxis = list(tickformat = ".0%"))
 fig
 # bar chart
 ggplot(df, mapping=aes(x = `jahr`, fill=`x3_satzer`)) +

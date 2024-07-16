@@ -44,8 +44,15 @@ ui <- fluidPage(
         
         tabsetPanel(type = "tabs",
                     tabPanel("Rangliste", dataTableOutput("table_by_player_short")),
-                    tabPanel("Spieler Statistik", dataTableOutput("table_by_player", width = "100%")),
-                    tabPanel("Team Statistik", dataTableOutput("table_by_team", width = "100%")),
+                    tabPanel("Spieler Statistik",
+                      fluidRow(
+                        dataTableOutput("table_by_player")
+                      ),
+                      fluidRow(
+                        plotlyOutput("cum_stats_per_player")
+                      )
+                    ),
+                    tabPanel("Team Statistik", dataTableOutput("table_by_team")),
                     tabPanel("Total Matches", plotOutput("bar_plot_matches"))
                     #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
         )
@@ -88,6 +95,24 @@ server <- function(input, output) {
     print(plot)
     #ggplotly(plot)
     # TODO move this code and the corresponding df prep into its own .R file and do so for each subsequent plot
+  })
+  #
+  output$cum_stats_per_player <- renderPlotly({
+    cumulative_stats <- get_df_for_cumulative_match_percentage(filtered_data())
+    # don't make plot if more than one year is selected
+    validate(
+      need( min(input$years) == max(input$years), "Plot funktioniert nur für ein Jahr")
+    )
+    #
+    plot <- plot_ly(x = sort(unique(cumulative_stats$reihenfolge)))
+    for(player in unique(cumulative_stats$Spieler)){
+      df_temp <- cumulative_stats %>%
+        filter(Spieler == player) %>%
+        arrange(reihenfolge) %>%
+        fill(siegprozent)
+      plot <- plot %>% add_trace(y = df_temp$siegprozent, name = player, type = 'scatter', mode = 'lines')  
+    }
+    plot <- plot %>% layout(yaxis = list(tickformat = ".1%"))
   })
   #
   output$table_by_player_short <- renderDataTable(
