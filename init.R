@@ -11,7 +11,8 @@ my_packages = c(
   "plotly",
   "janitor",
   "formattable",
-  "shinyWidgets"
+  "shinyWidgets",
+  "gsubfn"
   )
 install_if_missing = function(p) {
   if (p %in% rownames(installed.packages()) == FALSE) {

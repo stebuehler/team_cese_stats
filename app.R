@@ -54,8 +54,7 @@ ui <- fluidPage(
                       )
                     ),
                     tabPanel("Team Statistik", dataTableOutput("table_by_team")),
-                    tabPanel("Total Matches", plotOutput("bar_plot_matches"))
-                    #,tabPanel("Plotly with ggplot", plotlyOutput("bar_plot_plotly_v2"))
+                    tabPanel("Total Matches", plotlyOutput("bar_plot_matches"))
         )
       )
     )
@@ -78,7 +77,7 @@ server <- function(input, output) {
     return(df)
   })
   #
-  output$bar_plot_matches <- renderPlot({
+  output$bar_plot_matches <- renderPlotly({
     df <- filtered_data()
     chart_data <- get_df_for_matches_and_3satz_bar_and_line_chart(df, jahr)
     plot <- ggplot(chart_data, mapping=aes(x=jahr))
@@ -94,8 +93,7 @@ server <- function(input, output) {
     )
     plot <- plot + theme_minimal()
     print(plot)
-    #ggplotly(plot)
-    # TODO move this code and the corresponding df prep into its own .R file and do so for each subsequent plot
+    ggplotly(plot)
   })
   #
   output$cum_stats_per_player <- renderPlotly({
