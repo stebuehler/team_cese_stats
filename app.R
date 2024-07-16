@@ -45,7 +45,7 @@ ui <- fluidPage(
         
         tabsetPanel(type = "tabs",
                     tabPanel("Rangliste", dataTableOutput("table_by_player_short")),
-                    tabPanel("Spieler Statistik",
+                    tabPanel("Spieler Stats",
                       fluidRow(
                         dataTableOutput("table_by_player")
                       ),
@@ -53,8 +53,8 @@ ui <- fluidPage(
                         plotlyOutput("cum_stats_per_player")
                       )
                     ),
-                    tabPanel("Team Statistik", dataTableOutput("table_by_team")),
-                    tabPanel("Total Matches", plotlyOutput("bar_plot_matches"))
+                    tabPanel("Team Stats", dataTableOutput("table_by_team")),
+                    tabPanel("Total Stats", plotlyOutput("bar_plot_matches"))
         )
       )
     )
