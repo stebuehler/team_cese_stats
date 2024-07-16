@@ -12,8 +12,9 @@ library(plotly)
 library(DT)
 library(dplyr)
 library(shinyWidgets)
-source('util.R')
+library(gsubfn)
 
+source('util.R')
 source_df <- get_source_data()
 
 # Define UI for application that draws a histogram
@@ -67,7 +68,7 @@ server <- function(input, output) {
   
   filtered_data <- reactive({
     df <- source_df %>%
-      filter(jahr >= min(input$years) & jahr <= max(input$years))
+      filter(jahr %in% input$years)
     if(input$scope == "Team Cese"){
       df <- df %>% filter(team_cese_match == TRUE)
     }
@@ -99,20 +100,32 @@ server <- function(input, output) {
   #
   output$cum_stats_per_player <- renderPlotly({
     cumulative_stats <- get_df_for_cumulative_match_percentage(filtered_data())
-    # don't make plot if more than one year is selected
-    validate(
-      need( min(input$years) == max(input$years), "Plot funktioniert nur für ein Jahr")
-    )
-    #
-    plot <- plot_ly(x = sort(unique(cumulative_stats$reihenfolge)))
+    # prerequisites
+    x_axis <- 1:length(unique(cumulative_stats$reihenfolge_alltime))
+    list[ticktext, tickvals] <- give_x_ticks_for_cumulative_stats_plot(cumulative_stats)
+    # plot
+    plot <- plot_ly(x = x_axis)
     for(player in unique(cumulative_stats$Spieler)){
       df_temp <- cumulative_stats %>%
         filter(Spieler == player) %>%
-        arrange(reihenfolge) %>%
+        arrange(reihenfolge_alltime) %>%
         fill(siegprozent)
-      plot <- plot %>% add_trace(y = df_temp$siegprozent, name = player, type = 'scatter', mode = 'lines')  
+      plot <- plot %>% add_trace(
+        y = df_temp$siegprozent,
+        name = player,
+        type = 'scatter',
+        mode = 'lines')  
     }
-    plot <- plot %>% layout(yaxis = list(tickformat = ".1%"))
+    # layout
+    plot <- plot %>%
+      layout(
+        yaxis = list(tickformat = ".1%"),
+        xaxis = list(
+          ticktext = ticktext, 
+          tickvals = tickvals,
+          tickmode = "array"
+        )
+      )
   })
   #
   output$table_by_player_short <- renderDataTable(

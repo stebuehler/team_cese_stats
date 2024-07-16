@@ -7,11 +7,12 @@ library(dplyr)
 get_source_data <- function(){
   gs4_deauth()
   df <- read_sheet("https://docs.google.com/spreadsheets/d/1lI-jzdEPqdN7T8rvJEr-7wfv-34ZE9DpFVnR5JRegEY/edit?usp=sharing")
-  df <- df %>% drop_na(Jahr)
-  df <- clean_names(df)
-  df$spiele_gesamt <- df$spiel_gewonnen_team_a + df$spiel_gewonnen_team_b
-  df$saetze_gesamt <- df$satze_gewonnen_team_a + df$satze_gewonnen_team_b
-  df$punkte_gesamt <- df$punkte_gewonnen_team_a + df$punkte_gewonnen_team_b
+  df <- df %>% drop_na(Jahr) %>%
+    clean_names() %>%
+    mutate(spiele_gesamt = spiel_gewonnen_team_a + spiel_gewonnen_team_b) %>%
+    mutate(saetze_gesamt = satze_gewonnen_team_a + satze_gewonnen_team_b) %>%
+    mutate(punkte_gesamt = punkte_gewonnen_team_a + punkte_gewonnen_team_b) %>%
+    mutate(reihenfolge_alltime = jahr + 0.01*reihenfolge)
   return(df)
 }
 
@@ -228,12 +229,12 @@ get_df_for_cumulative_match_percentage <- function(df){
   df_player <- get_df_for_player_stats(df)
   # Data prep line chart
   cumulative_stats <- df_player %>%
-    arrange(Spieler, reihenfolge) %>%
+    arrange(Spieler, reihenfolge_alltime) %>%
     group_by(Spieler) %>%
     mutate(
       siegprozent = cumsum(spiele_gewonnen) / cumsum(spiele_gesamt)
     ) %>%
-    select(Spieler, reihenfolge, siegprozent)
+    select(Spieler, reihenfolge_alltime, siegprozent, jahr, reihenfolge)
   # pivot and unpivot to have same length entries for all players
   cumulative_stats <- pivot_wider(
     cumulative_stats,
@@ -242,9 +243,27 @@ get_df_for_cumulative_match_percentage <- function(df){
   )
   cumulative_stats <- pivot_longer(
     cumulative_stats,
-    cols = !reihenfolge,
+    cols = -c(reihenfolge_alltime, jahr, reihenfolge),
     names_to = "Spieler",
     values_to = "siegprozent"
   )
   return(cumulative_stats)
+}
+
+give_x_ticks_for_cumulative_stats_plot <- function(df_in){
+  # filter for just one player
+  player <- df_in$Spieler[1]
+  years <- unique(df_in$jahr)
+  df <- df_in %>%
+    filter(Spieler == player) %>%
+    arrange(reihenfolge_alltime) %>%
+    select(reihenfolge_alltime)
+  ticktext <- c()
+  tickvals <- c()
+  for(year in years){
+    rownum <- which(df[,1] == (year+0.01))
+    ticktext <- c(ticktext, year)
+    tickvals <- c(tickvals, rownum)
+  }
+  return(list(as.list(ticktext), as.list(tickvals)))
 }
