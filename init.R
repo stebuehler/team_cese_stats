@@ -12,7 +12,8 @@ my_packages = c(
   "janitor",
   "formattable",
   "shinyWidgets",
-  "gsubfn"
+  "gsubfn",
+  "shinyjs"
   )
 install_if_missing = function(p) {
   if (p %in% rownames(installed.packages()) == FALSE) {
