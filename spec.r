@@ -7,8 +7,16 @@ library(gsubfn)
 source("util.R")
 
 df <- get_source_data()
-df_in <- get_df_for_cumulative_match_percentage(df)
-list[a, b] <- give_x_ticks_for_cumulative_stats_plot(cumulative_stats)
+# jahr stats
+# anzahl spieler needs workaround via spieler_df or via operation to concatenate all four player columns in original df
+df %>%
+  group_by(jahr) %>%
+  summarise(
+    anzahl_matches = n_distinct(reihenfolge),
+    anzahl_sessions = n_distinct(session),
+    anzahl_saetze = sum(satze_gewonnen_team_a) + sum(satze_gewonnen_team_b),
+    anzahl_punkte = sum(punkte_gesamt), 
+  )
 # bar chart
 ggplot(df, mapping=aes(x = `jahr`, fill=`x3_satzer`)) +
   geom_bar(position='stack', color='black')
