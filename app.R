@@ -13,9 +13,11 @@ library(DT)
 library(dplyr)
 library(shinyWidgets)
 library(gsubfn)
+library(shinyjs)
 
 source('util.R')
 source_df <- get_source_data()
+all_years <- unique(source_df$jahr)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -26,13 +28,14 @@ ui <- fluidPage(
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
       sidebarPanel(
-        selectInput(
+        selectizeInput(
           "years",
           "Jahr(e)",
-          choices = sort(unique(source_df$jahr), decreasing=TRUE),
+          choices = sort(all_years, decreasing=TRUE),
           multiple = TRUE,
           selected = max(source_df$jahr)
         ),
+        actionButton("select_all_years", "Alle Jahre"),
         radioGroupButtons(
           "scope",
           "Spieler",
@@ -70,7 +73,7 @@ ui <- fluidPage(
 ################################################################################
 ### OUTPUT FUNCTIONS and other reactive expressions ############################
 ################################################################################
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   filtered_data <- reactive({
     df <- source_df %>%
@@ -82,6 +85,14 @@ server <- function(input, output) {
       df <- df %>% filter(original_match == TRUE)
     }
     return(df)
+  })
+  #
+  observeEvent(input$select_all_years, {
+    updateSelectizeInput(
+      session,
+      "years",
+      choices=all_years,
+      selected=all_years)
   })
   #
   output$bar_plot_matches <- renderPlotly({
