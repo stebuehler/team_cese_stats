@@ -7,16 +7,31 @@ library(gsubfn)
 source("util.R")
 
 df <- get_source_data()
+df_player <- get_df_for_player_stats(df)
 # jahr stats
 # anzahl spieler needs workaround via spieler_df or via operation to concatenate all four player columns in original df
-df %>%
+year_stats <- df %>%
   group_by(jahr) %>%
   summarise(
-    anzahl_matches = n_distinct(reihenfolge),
+    anzahl_tage = max(reihenfolge_tag),
     anzahl_sessions = n_distinct(session),
+    laengste_session = max(reihenfolge_in_session),
+    anzahl_matches = n_distinct(reihenfolge),
     anzahl_saetze = sum(satze_gewonnen_team_a) + sum(satze_gewonnen_team_b),
-    anzahl_punkte = sum(punkte_gesamt), 
-  )
+    anzahl_punkte = sum(punkte_gesamt),
+    anzahl_3_saetzer = sum(x3_satzer == TRUE),
+    anzahl_3_saetzer_gekehrt = sum(x3_satzer_gekehrt == TRUE)
+  ) %>%
+  as.data.frame()
+#
+df_anzahl_spieler <- df_player %>%
+  group_by(jahr) %>%
+  summarise(anzahl_spieler = n_distinct(Spieler)) %>%
+  as.data.frame()
+#
+year_stats <- year_stats %>%
+  inner_join(df_anzahl_spieler, by = "jahr")
+
 # bar chart
 ggplot(df, mapping=aes(x = `jahr`, fill=`x3_satzer`)) +
   geom_bar(position='stack', color='black')

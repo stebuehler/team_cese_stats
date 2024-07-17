@@ -214,6 +214,66 @@ get_standard_stats <- function(df, groupby){
   return(stats)
 }
 
+get_year_stats <- function(df){
+  df_player <- get_df_for_player_stats(df)
+  df_teams <- get_df_for_team_stats(df)
+  #
+  stats <- df %>%
+    group_by(jahr) %>%
+    summarise(
+      anzahl_tage = max(reihenfolge_tag),
+      anzahl_sessions = n_distinct(session),
+      laengste_session = max(reihenfolge_in_session),
+      anzahl_matches = n_distinct(reihenfolge),
+      anzahl_saetze = sum(satze_gewonnen_team_a) + sum(satze_gewonnen_team_b),
+      anzahl_punkte = sum(punkte_gesamt),
+      anzahl_3_saetzer = sum(x3_satzer == TRUE),
+      anzahl_3_saetzer_gekehrt = sum(x3_satzer_gekehrt == TRUE)
+    ) %>%
+    as.data.frame()
+  #
+  df_anzahl_spieler <- df_player %>%
+    group_by(jahr) %>%
+    summarise(anzahl_spieler = n_distinct(Spieler)) %>%
+    as.data.frame()
+  #
+  df_anzahl_teams <- df_teams %>%
+    group_by(jahr) %>%
+    summarise(anzahl_teams = n_distinct(Team)) %>%
+    as.data.frame()
+  #
+  stats <- stats %>%
+    inner_join(df_anzahl_spieler, by = "jahr") %>%
+    inner_join(df_anzahl_teams, by = "jahr") %>% # pretty names from here
+    mutate("Jahr" = jahr) %>%
+    mutate("Tage" = anzahl_tage) %>%
+    mutate("Spieler" = anzahl_spieler) %>%
+    mutate("Teams" = anzahl_teams) %>%
+    mutate("Sessions" = anzahl_sessions) %>%
+    mutate("Längste Session" = laengste_session) %>%
+    mutate("Matches" = anzahl_matches) %>%
+    mutate("Sätze" = anzahl_saetze) %>%
+    mutate("Punkte" = anzahl_punkte) %>%
+    mutate("3-Sätzer" = anzahl_3_saetzer) %>%
+    mutate("3-Sätzer gekehrt" = anzahl_3_saetzer_gekehrt) %>%
+    select( # reorder columns
+      "Jahr",
+      "Tage",
+      "Spieler",
+      "Teams",
+      "Sessions",
+      "Längste Session",
+      "Matches",
+      "Sätze",
+      "Punkte",
+      "3-Sätzer",
+      "3-Sätzer gekehrt"
+    )
+  return(stats)
+  #
+  
+}
+
 get_player_stats_short <- function(df){
   player_stats <- get_standard_stats(df, "Spieler")
   player_stats <- player_stats %>%

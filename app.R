@@ -54,7 +54,14 @@ ui <- fluidPage(
                       )
                     ),
                     tabPanel("Team Stats", dataTableOutput("table_by_team")),
-                    tabPanel("Total Stats", plotlyOutput("bar_plot_matches"))
+                    tabPanel("Total Stats",
+                             fluidRow(
+                               dataTableOutput("table_by_year")
+                             ),
+                             fluidRow(
+                               plotlyOutput("bar_plot_matches")
+                               )
+                    )
         )
       )
     )
@@ -83,14 +90,7 @@ server <- function(input, output) {
     plot <- ggplot(chart_data, mapping=aes(x=jahr))
     plot <- plot + geom_bar(aes(y = count, group=1), stat='identity', position = "dodge")
     plot <- plot + ylab("Anzahl Matches")
-    plot <- plot + geom_line(
-      aes(y = x3satz_percentage * max(chart_data$count), group=1),
-      color = "red"
-    )
-    plot <- plot + scale_y_continuous(
-      name = "Anzahl Matches",
-      sec.axis = sec_axis(~./max(chart_data$count), name = "Prozent 3-Sätzer")
-    )
+    plot <- plot + scale_y_continuous(name = "Anzahl Matches")
     plot <- plot + theme_minimal()
     print(plot)
     ggplotly(plot)
@@ -165,6 +165,16 @@ server <- function(input, output) {
         "Saetze gewonnen (%)",
         "Punkte gewonnen (%)"
       ), 1)
+  )
+  #
+  output$table_by_year <- renderDataTable(
+    datatable(
+      get_year_stats(
+        filtered_data()
+      ),
+      options = list(dom = "t", pageLength = 99),
+      rownames = FALSE
+    )
   )
 }
 
