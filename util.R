@@ -104,7 +104,13 @@ get_df_for_team_stats <- function(df){
     'resultat_string_sicht_team',
     'resultat_string_satz_1_sicht_team',
     'resultat_string_satz_2_sicht_team',
-    'resultat_string_satz_3_sicht_team'
+    'resultat_string_satz_3_sicht_team',
+    'punkte_gewonnen_satz_1_sicht_team',
+    'punkte_gewonnen_satz_2_sicht_team',
+    'punkte_gewonnen_satz_3_sicht_team',
+    'punkte_verloren_satz_1_sicht_team',
+    'punkte_verloren_satz_2_sicht_team',
+    'punkte_verloren_satz_3_sicht_team'
   )
   old_column_names_team_a <- c(
     'team_a_unique',
@@ -118,7 +124,13 @@ get_df_for_team_stats <- function(df){
     'resultat_string_sicht_team_a',
     'resultat_string_satz_1_sicht_team_a',
     'resultat_string_satz_2_sicht_team_a',
-    'resultat_string_satz_3_sicht_team_a'
+    'resultat_string_satz_3_sicht_team_a',
+    'punkte_satz_1_team_a',
+    'punkte_satz_2_team_a',
+    'punkte_satz_3_team_a',
+    'punkte_satz_1_team_b',
+    'punkte_satz_2_team_b',
+    'punkte_satz_3_team_b'
   )
   #
   old_column_names_team_b <- c(
@@ -133,7 +145,13 @@ get_df_for_team_stats <- function(df){
     'resultat_string_sicht_team_b',
     'resultat_string_satz_1_sicht_team_b',
     'resultat_string_satz_2_sicht_team_b',
-    'resultat_string_satz_3_sicht_team_b'
+    'resultat_string_satz_3_sicht_team_b',
+    'punkte_satz_1_team_b',
+    'punkte_satz_2_team_b',
+    'punkte_satz_3_team_b',
+    'punkte_satz_1_team_a',
+    'punkte_satz_2_team_a',
+    'punkte_satz_3_team_a'
   )
   #
   df_team_a <- data.frame(df)
@@ -150,6 +168,44 @@ get_df_for_team_stats <- function(df){
   df_out$punkte_gesamt <- df_out$punkte_gewonnen + df_out$punkte_verloren
   df_out$punktedifferenz <- df_out$punkte_gewonnen - df_out$punkte_verloren
   return(df_out)
+}
+
+get_df_for_set_stats <- function(df_team){
+  new_column_names <- c(
+    'satz_resultat_string',
+    'satz_resultat_string_ordered',
+    'punkte_gewonnen',
+    'punkte_verloren'
+  )
+  old_column_names_satz_1 <- c(
+    'resultat_string_satz_1_sicht_team',
+    'resultat_string_satz_1',
+    'punkte_gewonnen_satz_1_sicht_team',
+    'punkte_verloren_satz_1_sicht_team'
+  )
+  old_column_names_satz_2 <- c(
+    'resultat_string_satz_2_sicht_team',
+    'resultat_string_satz_2',
+    'punkte_gewonnen_satz_2_sicht_team',
+    'punkte_verloren_satz_2_sicht_team'
+  )
+  old_column_names_satz_3 <- c(
+    'resultat_string_satz_3_sicht_team',
+    'resultat_string_satz_3',
+    'punkte_gewonnen_satz_3_sicht_team',
+    'punkte_verloren_satz_3_sicht_team'
+  )
+  df_satz_1 <- data.frame(df_team)
+  df_satz_2 <- data.frame(df_team)
+  df_satz_3 <- data.frame(df_team)
+  #
+  for (i in 1:length(old_column_names_satz_1)){
+    colnames(df_satz_1)[colnames(df_satz_1) == old_column_names_satz_1[i]] = new_column_names[i]
+    colnames(df_satz_2)[colnames(df_satz_2) == old_column_names_satz_2[i]] = new_column_names[i]
+    colnames(df_satz_3)[colnames(df_satz_3) == old_column_names_satz_3[i]] = new_column_names[i]
+  }
+  #
+  df_out <- bind_rows(df_satz_1, df_satz_2, df_satz_3)
 }
 
 get_df_for_matches_and_3satz_bar_and_line_chart <- function(df, grouping_column){
@@ -295,7 +351,7 @@ get_df_for_cumulative_match_percentage <- function(df){
     mutate(
       siegprozent = cumsum(spiele_gewonnen) / cumsum(spiele_gesamt)
     ) %>%
-    select(Spieler, reihenfolge_alltime, siegprozent, jahr, reihenfolge)
+    select(Spieler, reihenfolge_alltime, siegprozent, jahr, reihenfolge, wochentag_kurz)
   # pivot and unpivot to have same length entries for all players
   cumulative_stats <- pivot_wider(
     cumulative_stats,
@@ -304,7 +360,7 @@ get_df_for_cumulative_match_percentage <- function(df){
   )
   cumulative_stats <- pivot_longer(
     cumulative_stats,
-    cols = -c(reihenfolge_alltime, jahr, reihenfolge),
+    cols = -c(reihenfolge_alltime, jahr, reihenfolge, wochentag_kurz),
     names_to = "Spieler",
     values_to = "siegprozent"
   )
@@ -318,13 +374,24 @@ give_x_ticks_for_cumulative_stats_plot <- function(df_in){
   df <- df_in %>%
     filter(Spieler == player) %>%
     arrange(reihenfolge_alltime) %>%
-    select(reihenfolge_alltime)
+    select(reihenfolge_alltime, jahr, wochentag_kurz)
   ticktext <- c()
   tickvals <- c()
-  for(year in years){
-    rownum <- which(df[,1] == (year+0.01))
-    ticktext <- c(ticktext, year)
-    tickvals <- c(tickvals, rownum)
+  if (length(years) > 1){
+    for(year in years){
+      first_match <- min({df %>% filter(jahr == year)}$reihenfolge_alltime)
+      rownum <- which(df[,1] == first_match)
+      ticktext <- c(ticktext, year)
+      tickvals <- c(tickvals, rownum)
+    }
+  }
+  else{
+    for(tag in unique(df$wochentag_kurz)){
+      first_match <- min({df %>% filter(wochentag_kurz == tag)}$reihenfolge_alltime)
+      rownum <- which(df[,1] == first_match)
+      ticktext <- c(ticktext, tag)
+      tickvals <- c(tickvals, rownum)
+    }
   }
   return(list(as.list(ticktext), as.list(tickvals)))
 }
