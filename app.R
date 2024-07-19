@@ -247,7 +247,8 @@ server <- function(input, output, session) {
       ) %>%
         arrange(desc(jahr)),
       options = list(dom = "lftp"),
-      rownames = TRUE
+      rownames = TRUE,
+      filter = list(position = 'top', clear = FALSE)
     )
   )
 }
