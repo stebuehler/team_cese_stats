@@ -65,7 +65,11 @@ ui <- fluidPage(
                                plotlyOutput("bar_plot_matches")
                                )
                     ),
-                    tabPanel("Satz Histogramm", plotlyOutput("bar_plot_sets"))
+                    tabPanel("Satz Histo", plotlyOutput("bar_plot_sets")),
+                    tabPanel("Rohdaten", div(
+                      dataTableOutput("raw_data_short")),
+                      style = "font-size:70%"
+                      )
         )
       )
     ),
@@ -87,7 +91,7 @@ ui <- fluidPage(
           "
       )
     ),
-    textOutput("keepAlive")
+    span(textOutput("keepAlive"), style="color: white")
 )
 
 ################################################################################
@@ -233,6 +237,17 @@ server <- function(input, output, session) {
         arrange(desc(Jahr)),
       options = list(dom = "t", pageLength = 99),
       rownames = FALSE
+    )
+  )
+  #
+  output$raw_data_short <- renderDataTable(
+    datatable(
+      get_orig_df_with_less_columns(
+        filtered_data()
+      ) %>%
+        arrange(desc(jahr)),
+      options = list(dom = "lftp"),
+      rownames = TRUE
     )
   )
 }

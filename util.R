@@ -411,3 +411,32 @@ give_x_ticks_for_cumulative_stats_plot <- function(df_in){
   }
   return(list(as.list(ticktext), as.list(tickvals)))
 }
+
+get_orig_df_with_less_columns <- function(df){
+  df_short <- df %>%
+    select(
+      jahr,
+      reihenfolge,
+      spieler_1_team_a,
+      spieler_2_team_a,
+      spieler_1_team_b,
+      spieler_2_team_b,
+      team_a_unique,
+      team_b_unique,
+      punkte_satz_1_team_a,
+      punkte_satz_1_team_b,
+      punkte_satz_2_team_a,
+      punkte_satz_2_team_b,
+      punkte_satz_3_team_a,
+      punkte_satz_3_team_b,
+      resultat_string_sicht_team_a,
+      satze_gewonnen_team_a,
+      satze_gewonnen_team_b,
+      spiel_gewonnen_team_a,
+      spiel_gewonnen_team_b,
+      kommentar,
+      session,
+      reihenfolge_alltime
+    )
+  return(df_short)
+}
