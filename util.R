@@ -270,6 +270,7 @@ get_standard_stats <- function(df, groupby){
     mutate("Punkte gesamt" = punkte_gesamt) %>%
     mutate("Punkte gewonnen" = punkte_gewonnen) %>%
     mutate("Punkte gewonnen (%)" = percent(punkte_gewonnen_prozent, 1)) %>%
+    mutate("Punkte +/-" = 2 * punkte_gewonnen - punkte_gesamt) %>%
     select( # reorder columns
       Rang,
       {{groupby_sym}},
@@ -281,7 +282,8 @@ get_standard_stats <- function(df, groupby){
       "Saetze gewonnen (%)",
       "Punkte gesamt",
       "Punkte gewonnen",
-      "Punkte gewonnen (%)"
+      "Punkte gewonnen (%)",
+      "Punkte +/-"
     )
   return(stats)
 }
