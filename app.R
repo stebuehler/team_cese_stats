@@ -64,7 +64,8 @@ ui <- fluidPage(
                              fluidRow(
                                plotlyOutput("bar_plot_matches")
                                )
-                    )
+                    ),
+                    tabPanel("Satz Histogramm", plotlyOutput("bar_plot_sets"))
         )
       )
     )
@@ -103,8 +104,30 @@ server <- function(input, output, session) {
     plot <- plot + ylab("Anzahl Matches")
     plot <- plot + scale_y_continuous(name = "Anzahl Matches")
     plot <- plot + theme_minimal()
-    print(plot)
-    ggplotly(plot)
+  })
+  #
+  output$bar_plot_sets <- renderPlotly({
+    df_set_bar_chart <- get_df_for_satz_stacked_bar_chart(
+      get_df_for_set_stats(
+        get_df_for_team_stats(
+          filtered_data()
+        )
+      )
+    )
+    plot <- plot_ly(
+      df_set_bar_chart,
+      x = ~punktedifferenz_satz,
+      y = ~satz1,
+      type = 'bar',
+      name = 'Satz 1'
+    )
+    plot <- plot %>% add_trace(y = ~satz2, name = 'Satz 2')
+    plot <- plot %>% add_trace(y = ~satz3, name = 'Satz 3')
+    plot <- plot %>% layout(
+      xaxis = list(title = 'Punktedifferenz'),
+      yaxis = list(title = 'Anzahl Sätze'),
+      barmode = 'stack'
+    )
   })
   #
   output$cum_stats_per_player <- renderPlotly({
@@ -182,7 +205,8 @@ server <- function(input, output, session) {
     datatable(
       get_year_stats(
         filtered_data()
-      ),
+      ) %>%
+        arrange(desc(Jahr)),
       options = list(dom = "t", pageLength = 99),
       rownames = FALSE
     )

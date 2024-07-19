@@ -174,8 +174,8 @@ get_df_for_set_stats <- function(df_team){
   new_column_names <- c(
     'satz_resultat_string',
     'satz_resultat_string_ordered',
-    'punkte_gewonnen',
-    'punkte_verloren'
+    'punkte_gewonnen_satz',
+    'punkte_verloren_satz'
   )
   old_column_names_satz_1 <- c(
     'resultat_string_satz_1_sicht_team',
@@ -195,9 +195,9 @@ get_df_for_set_stats <- function(df_team){
     'punkte_gewonnen_satz_3_sicht_team',
     'punkte_verloren_satz_3_sicht_team'
   )
-  df_satz_1 <- data.frame(df_team)
-  df_satz_2 <- data.frame(df_team)
-  df_satz_3 <- data.frame(df_team)
+  df_satz_1 <- data.frame(df_team) %>% mutate(satz_nr = 1)
+  df_satz_2 <- data.frame(df_team) %>% mutate(satz_nr = 2)
+  df_satz_3 <- data.frame(df_team) %>% mutate(satz_nr = 3)
   #
   for (i in 1:length(old_column_names_satz_1)){
     colnames(df_satz_1)[colnames(df_satz_1) == old_column_names_satz_1[i]] = new_column_names[i]
@@ -206,6 +206,8 @@ get_df_for_set_stats <- function(df_team){
   }
   #
   df_out <- bind_rows(df_satz_1, df_satz_2, df_satz_3)
+  df_out <- df_out %>%
+    mutate(punktedifferenz_satz = punkte_gewonnen_satz - punkte_verloren_satz)
 }
 
 get_df_for_matches_and_3satz_bar_and_line_chart <- function(df, grouping_column){
@@ -216,6 +218,20 @@ get_df_for_matches_and_3satz_bar_and_line_chart <- function(df, grouping_column)
       x3satz_percentage = mean(x3_satzer)
     )
   return(chart_data)
+}
+
+get_df_for_satz_stacked_bar_chart <- function(df_sets){
+  df_set_bar_chart <- df_sets %>%
+    filter(punktedifferenz_satz > 0) %>%
+    group_by(punktedifferenz_satz, satz_nr) %>%
+    summarise(count = n()) %>%
+    as.data.frame() %>%
+    pivot_wider(
+      names_from=satz_nr,
+      values_from = count,
+      names_prefix = "satz",
+    )
+  return(df_set_bar_chart)
 }
 
 get_standard_stats <- function(df, groupby){
