@@ -255,7 +255,7 @@ get_standard_stats <- function(df, groupby){
       punkte_gesamt = sum(punkte_gesamt),
       punkte_gewonnen = sum(punkte_gewonnen),
       punkte_gewonnen_prozent = punkte_gewonnen / punkte_gesamt,
-      tiebreaker_column = spiele_gewonnen_prozent + 0.01 * saetze_gewonnen_prozent + 0.0001 * punkte_gewonnen_prozent,
+      tiebreaker_column = spiele_gewonnen_prozent + 0.01 * replace_na(saetze_gewonnen_prozent, 0) + 0.0001 * replace_na(punkte_gewonnen_prozent, 0),
     ) %>%
     as.data.frame() %>%
     arrange(., desc(tiebreaker_column))%>% # order rows
