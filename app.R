@@ -56,16 +56,23 @@ ui <- fluidPage(
                         plotlyOutput("cum_stats_per_player")
                       )
                     ),
-                    tabPanel("Team Stats", dataTableOutput("table_by_team")),
+                    tabPanel("Team Stats",
+                             fluidRow(
+                               dataTableOutput("table_by_team")
+                               ),
+                             fluidRow(
+                               plotlyOutput("matchup_heatmap")
+                             )
+                    ),
                     tabPanel("Total Stats",
                              fluidRow(
                                dataTableOutput("table_by_year")
                              ),
                              fluidRow(
-                               plotlyOutput("bar_plot_matches")
+                               plotlyOutput("bar_plot_sets")
                                )
                     ),
-                    tabPanel("Satz Histo", plotlyOutput("bar_plot_sets")),
+                    tabPanel("Satz Histo", plotlyOutput("histogram_sets")),
                     tabPanel("Rohdaten", div(
                       dataTableOutput("raw_data_short")),
                       style = "font-size:70%"
@@ -135,6 +142,22 @@ server <- function(input, output, session) {
   })
   #
   output$bar_plot_sets <- renderPlotly({
+    df_sets <- get_df_for_set_stats(
+      get_df_for_team_stats(
+        filtered_data()
+        )
+      )
+    groupby <- ifelse(length(unique(df_sets$jahr)) > 1, jahr, wochentag_kurz)
+    groupby_sym <- sym(grouping_column)
+    chart_data <- get_df_for_satz_chart(df_sets, groupby)
+    plot <- ggplot(chart_data, mapping=aes(x={{ groupby_sym }}))
+    plot <- plot + geom_bar(aes(y = count, group=1), stat='identity', position = "dodge")
+    plot <- plot + ylab("Anzahl Sätze")
+    plot <- plot + scale_y_continuous(name = "Anzahl Sätze")
+    plot <- plot + theme_minimal()
+  })
+  #
+  output$histogram_sets <- renderPlotly({
     df_set_bar_chart <- get_df_for_satz_stacked_bar_chart(
       get_df_for_set_stats(
         get_df_for_team_stats(
@@ -251,6 +274,23 @@ server <- function(input, output, session) {
       filter = list(position = 'top', clear = FALSE)
     )
   )
+  #
+  output$matchup_heatmap <- renderPlotly({
+    total_order <- get_standard_stats(filtered_data(), "Team")$Team
+    matrix_matchup <- get_matrix_for_matchup_chart(filtered_data(), total_order)
+    #
+    plot <- plot_ly(
+      x = total_order,
+      y = total_order,
+      z = matrix_matchup,
+      colors = colorRamp(c("red", "yellow", "green")),
+      type = "heatmap"
+    ) %>%
+      layout(yaxis = list(
+        autorange="reversed"
+      )
+      )
+  })
 }
 
 # Run the application 

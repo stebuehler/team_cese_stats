@@ -220,6 +220,17 @@ get_df_for_matches_and_3satz_bar_and_line_chart <- function(df, grouping_column)
   return(chart_data)
 }
 
+get_df_for_satz_chart <- function(df_sets, grouping_column){
+  groupby_sym <- sym(grouping_column)
+  chart_data <- df_sets %>%
+    filter(punktedifferenz_satz > 0) %>%
+    group_by({{ groupby_sym }}) %>%
+    summarize(
+      count = n()
+    )
+  return(chart_data)
+}
+
 get_df_for_satz_stacked_bar_chart <- function(df_sets){
   df_set_bar_chart <- df_sets %>%
     filter(punktedifferenz_satz > 0) %>%
@@ -441,4 +452,13 @@ get_orig_df_with_less_columns <- function(df){
       reihenfolge_alltime
     )
   return(df_short)
+}
+
+get_matrix_for_matchup_chart <- function(df, total_order){
+  df_matchup <- get_df_for_team_stats(df) %>%
+    group_by(Team, gegner) %>%
+    summarise(spiele_gewonnen_prozent = sum(spiele_gewonnen, na.rm = TRUE) / sum(spiele_gesamt, na.rm = TRUE)) %>%
+    arrange(sapply(Team, function(y) which(y == total_order))) %>%
+    pivot_wider(names_from = gegner, values_from = spiele_gewonnen_prozent)
+  return(data.matrix(df_matchup[,total_order]))
 }
