@@ -284,7 +284,8 @@ server <- function(input, output, session) {
       y = total_order,
       z = matrix_matchup,
       colors = colorRamp(c("red", "yellow", "green")),
-      type = "heatmap"
+      type = "heatmap",
+      texttemplate = "%{z:.3p}"
     ) %>%
       layout(yaxis = list(
         autorange="reversed"
