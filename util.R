@@ -13,7 +13,8 @@ get_source_data <- function(){
     mutate(saetze_gesamt = satze_gewonnen_team_a + satze_gewonnen_team_b) %>%
     mutate(punkte_gesamt = punkte_gewonnen_team_a + punkte_gewonnen_team_b) %>%
     mutate(reihenfolge_alltime = jahr + 0.01*reihenfolge) %>%
-    mutate(session = replace(session, session == "- N/A N/A", NA))
+    mutate(session = replace(session, session == "- N/A N/A", NA)) %>%
+    mutate(tag = paste(reihenfolge_tag, "-", wochentag_kurz))
   return(df)
 }
 
