@@ -18,6 +18,13 @@ get_source_data <- function(){
   return(df)
 }
 
+get_all_players <- function(df){
+  players <- append(df$spieler_1_team_a,df$spieler_2_team_a)
+  players <- append(players, df$spieler_1_team_b)
+  players <- append(players, df$spieler_2_team_b)
+  return(unique(players))
+}
+  
 # TODO: drop unused / non-useful columns at the end
 get_df_for_player_stats <- function(df){
   new_column_names <- c(

@@ -18,6 +18,7 @@ library(shinyjs)
 source('util.R')
 source_df <- get_source_data()
 all_years <- unique(source_df$jahr)
+all_players <- get_all_players(source_df)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -71,6 +72,25 @@ ui <- fluidPage(
                              fluidRow(
                                plotlyOutput("bar_plot_sets")
                                )
+                    ),
+                    tabPanel("Spieler Steckbrief",
+                             fluidRow(
+                               selectizeInput(
+                                 "player",
+                                 "Spieler",
+                                 choices = sort(all_players),
+                                 multiple = FALSE,
+                                 selected = source_df$spieler_1_team_a[1]
+                               )
+                             ),
+                             fluidRow(
+                               dataTableOutput("table_single_player")
+                             ),
+                             fluidRow(
+                               column(12, align="center",
+                                      imageOutput("player_image")
+                               )
+                             )
                     ),
                     tabPanel("Satz Histo", plotlyOutput("histogram_sets")),
                     tabPanel("Rohdaten", div(
@@ -130,6 +150,17 @@ server <- function(input, output, session) {
       choices=all_years,
       selected=all_years)
   })
+  #
+  output$player_image <- renderImage({
+    # When input$n is 3, filename is ./images/image3.jpeg
+    filename <- normalizePath(file.path('./images',
+                                        paste(input$player, '.png', sep='')))
+    
+    # Return a list containing the filename and alt text
+    list(src = filename,
+         alt = paste(input$player))
+    
+  }, deleteFile = FALSE)
   #
   output$bar_plot_matches <- renderPlotly({
     df <- filtered_data()
@@ -216,6 +247,19 @@ server <- function(input, output, session) {
       get_player_stats_short(
         filtered_data()
         ),
+      options = list(dom = "t", pageLength = 99),
+      rownames = FALSE
+    ) %>% 
+      formatPercentage(c(
+        "Spiele gewonnen (%)"
+      ), 1)
+  )
+  #
+  output$table_single_player <- renderDataTable(
+    datatable(
+      get_player_stats_short(
+        filtered_data()
+      ),
       options = list(dom = "t", pageLength = 99),
       rownames = FALSE
     ) %>% 
