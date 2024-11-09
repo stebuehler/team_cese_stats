@@ -16,11 +16,8 @@ library(gsubfn)
 library(shinyjs)
 
 source('util.R')
-source_df <- get_source_data()
-all_years <- unique(source_df$jahr)
-all_players <- get_all_players(source_df)
 
-# Define UI for application that draws a histogram
+# Define UI
 ui <- fluidPage(
 
     # Application title
@@ -32,9 +29,9 @@ ui <- fluidPage(
         selectizeInput(
           "years",
           "Jahr(e)",
-          choices = sort(all_years, decreasing=TRUE),
+          choices = NULL,
           multiple = TRUE,
-          selected = max(source_df$jahr)
+          selected = NULL
         ),
         actionButton("select_all_years", "Alle Jahre"),
         radioGroupButtons(
@@ -42,6 +39,7 @@ ui <- fluidPage(
           "Spieler",
           choices = c("Alle", "Team Cese", "Team Cese classic")
         ),
+        actionButton("reload_data", "Daten neu laden"),
         width = 3
       ),
       #
@@ -78,9 +76,9 @@ ui <- fluidPage(
                                selectizeInput(
                                  "player",
                                  "Spieler",
-                                 choices = sort(all_players),
+                                 choices = NULL,
                                  multiple = FALSE,
-                                 selected = source_df$spieler_1_team_a[1]
+                                 selected = NULL
                                )
                              ),
                              fluidRow(
@@ -132,7 +130,7 @@ server <- function(input, output, session) {
   })
   #
   filtered_data <- reactive({
-    df <- source_df %>%
+    df <- source_df() %>%
       filter(jahr %in% input$years)
     if(input$scope == "Team Cese"){
       df <- df %>% filter(team_cese_match == TRUE)
@@ -147,8 +145,46 @@ server <- function(input, output, session) {
     updateSelectizeInput(
       session,
       "years",
-      choices=all_years,
-      selected=all_years)
+      choices=all_years(),
+      selected=all_years())
+  })
+  #
+  source_df <- reactive({
+    df <- get_source_data()
+    return(df)
+  }) |> bindEvent(input$reload_data, ignoreNULL = FALSE)
+  #
+  all_years <- reactive({
+    df <- source_df()
+    return(unique(df$jahr))
+  })
+  #
+  all_players <- reactive({
+    df <- source_df()
+    return(get_all_players(df))
+  })
+  #
+  player1 <- reactive({
+    return(all_players()[1])
+  })
+  #
+  observe({
+    updateSelectizeInput(
+      session,
+      "years",
+      choices=sort(all_years(), decreasing=TRUE),
+      selected=max(all_years()),
+      )
+  })
+  #
+  observe({
+    df <- source_df()
+    updateSelectizeInput(
+      session,
+      "player",
+      choices=sort(all_players()),
+      selected=player1(),
+    )
   })
   #
   output$player_image <- renderImage({
