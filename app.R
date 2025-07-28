@@ -293,8 +293,9 @@ server <- function(input, output, session) {
   #
   output$table_single_player <- renderDataTable(
     datatable(
-      get_player_stats_short(
-        filtered_data()
+      get_stats_for_single_player(
+        filtered_data(),
+        input$player
       ),
       options = list(dom = "t", pageLength = 99),
       rownames = FALSE

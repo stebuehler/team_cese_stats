@@ -379,6 +379,17 @@ get_player_stats_short <- function(df){
   return(player_stats)
 }
 
+get_stats_for_single_player <- function(df, player_name){
+  player_stats <- get_standard_stats(df, "Spieler")
+  player_stats <- player_stats %>%
+    filter(Spieler == player_name) %>%
+    select(
+      "Spiele gesamt",
+      "Spiele gewonnen (%)"
+    )
+  return(player_stats)
+}
+
 get_df_for_cumulative_match_percentage <- function(df){
   df_player <- get_df_for_player_stats(df)
   # Data prep line chart
