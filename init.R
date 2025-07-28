@@ -13,7 +13,8 @@ my_packages = c(
   "formattable",
   "shinyWidgets",
   "gsubfn",
-  "shinyjs"
+  "shinyjs",
+  "stringr"
   )
 install_if_missing = function(p) {
   if (p %in% rownames(installed.packages()) == FALSE) {
