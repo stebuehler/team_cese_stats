@@ -380,14 +380,15 @@ get_player_stats_short <- function(df){
 }
 
 get_stats_for_single_player <- function(df, player_name){
-  player_stats <- get_standard_stats(df, "Spieler")
-  player_stats <- player_stats %>%
-    filter(Spieler == player_name) %>%
-    select(
-      "Spiele gesamt",
-      "Spiele gewonnen (%)"
-    )
-  return(player_stats)
+  stats <- get_standard_stats(df, "Spieler")
+  stats <- stats %>%
+    filter(Spieler == player_name)
+  transposed_df <- data.frame(
+    Variable = colnames(stats),
+    Value = as.character(unlist(stats)),
+    stringsAsFactors = FALSE
+  )
+  return(transposed_df)
 }
 
 get_df_for_cumulative_match_percentage <- function(df){

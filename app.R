@@ -82,13 +82,13 @@ ui <- fluidPage(
                                )
                              ),
                              fluidRow(
-                               dataTableOutput("table_single_player")
+                               column(12, align="center",
+                                      imageOutput("player_image", , height = "160px")
+                               )
                              ),
                              fluidRow(
-                               column(12, align="center",
-                                      imageOutput("player_image")
-                               )
-                             )
+                               dataTableOutput("table_single_player")
+                             ),
                     ),
                     tabPanel("Satz Histo", plotlyOutput("histogram_sets")),
                     tabPanel("Rohdaten", div(
@@ -194,7 +194,8 @@ server <- function(input, output, session) {
     
     # Return a list containing the filename and alt text
     list(src = filename,
-         alt = paste(input$player))
+         alt = paste(input$player),
+         height = 160)
     
   }, deleteFile = FALSE)
   #
