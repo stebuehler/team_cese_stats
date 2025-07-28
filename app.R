@@ -300,10 +300,7 @@ server <- function(input, output, session) {
       ),
       options = list(dom = "t", pageLength = 99),
       rownames = FALSE
-    ) %>% 
-      formatPercentage(c(
-        "Spiele gewonnen (%)"
-      ), 1)
+    )
   )
   #
   output$table_by_player <- renderDataTable(

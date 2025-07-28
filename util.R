@@ -3,6 +3,7 @@ library(janitor)
 library(formattable)
 library(tidyr)
 library(dplyr)
+library(stringr)
 
 get_source_data <- function(){
   gs4_deauth()
@@ -253,7 +254,7 @@ get_df_for_satz_stacked_bar_chart <- function(df_sets){
   return(df_set_bar_chart)
 }
 
-get_standard_stats <- function(df, groupby){
+get_standard_stats <- function(df, groupby, separate_years=FALSE){
   if(groupby == "Spieler"){
     df_stats <- get_df_for_player_stats(df)
   } else if(groupby == "Team"){
@@ -262,8 +263,9 @@ get_standard_stats <- function(df, groupby){
     stop("not implemented")
     }
   #
-  groupby_sym <- sym(groupby)
-  stats <- df_stats %>% group_by({{groupby_sym}}) %>%
+  group_vars <- if (separate_years) c(groupby, "jahr") else groupby
+  stats <- df_stats %>% 
+    group_by(across(all_of(group_vars))) %>%
     summarise(
       spiele_gesamt = sum(spiele_gesamt),
       spiele_gewonnen = sum(spiele_gewonnen),
@@ -292,7 +294,7 @@ get_standard_stats <- function(df, groupby){
     mutate("Punkte +/-" = 2 * punkte_gewonnen - punkte_gesamt) %>%
     select( # reorder columns
       Rang,
-      {{groupby_sym}},
+      all_of(group_vars),
       "Spiele gesamt",
       "Spiele gewonnen",
       "Spiele gewonnen (%)",
@@ -305,6 +307,49 @@ get_standard_stats <- function(df, groupby){
       "Punkte +/-"
     )
   return(stats)
+}
+
+get_additional_stats_for_steckbrief <- function(df, player_name){
+  df_stats <- get_standard_stats(df, "Spieler", separate_years = TRUE) %>%
+    filter(Spieler == player_name)
+  count_years <- length(unique(df_stats$jahr))
+  best_year <- df_stats$jahr[1]
+  worst_year  <- df_stats$jahr[nrow(df_stats)]
+  best_year_pctge <- df_stats$`Spiele gewonnen (%)`[1]
+  worst_year_pctge <- df_stats$`Spiele gewonnen (%)`[nrow(df_stats)]
+  #
+  df_stats_team <- get_standard_stats(df, "Team") %>%
+    filter(str_detect(Team, fixed(player_name, ignore_case = TRUE)))
+  best_team <- df_stats_team$Team[1]
+  worst_team <- df_stats_team$Team[nrow(df_stats_team)]
+  best_team_pctge <- df_stats_team$`Spiele gewonnen (%)`[1]
+  worst_team_pctge <- df_stats_team$`Spiele gewonnen (%)`[nrow(df_stats_team)]
+  #
+  df_out <- data.frame(
+    Variable = c(
+      "Anzahl Ceses",
+      "Bestes Jahr",
+      "Siegquote bestes Jahr",
+      "Schlechtestes Jahr",
+      "Siegquote schlechtestes Jahr",
+      "Bestes Team",
+      "Siegquote bestes Team",
+      "Schlechtestes Team",
+      "Siegquote schlechtestes Team"
+    ),
+    Value = c(
+      count_years,
+      best_year,
+      best_year_pctge,
+      worst_year,
+      worst_year_pctge,
+      best_team,
+      best_team_pctge,
+      worst_team,
+      worst_team_pctge
+    )
+  )
+  return(df_out)
 }
 
 get_year_stats <- function(df){
@@ -379,16 +424,44 @@ get_player_stats_short <- function(df){
   return(player_stats)
 }
 
+
+format_percent_rows <- function(df, percent_vars, digits = 1) {
+  df <- df %>%
+    mutate(Value = as.character(Value))  # Ensure Value is character
+  
+  for (var in percent_vars) {
+    df$Value[df$Variable == var] <- paste0(
+      sprintf(paste0("%.", digits, "f"), 
+              as.numeric(df$Value[df$Variable == var]) * 100),
+      "%"
+    )
+  }
+  return(df)
+}
+
 get_stats_for_single_player <- function(df, player_name){
-  stats <- get_standard_stats(df, "Spieler")
-  stats <- stats %>%
-    filter(Spieler == player_name)
+  stats <- get_standard_stats(df, "Spieler") %>%
+    filter(Spieler == player_name) %>%
+    select(-Rang, -Spieler)
   transposed_df <- data.frame(
     Variable = colnames(stats),
     Value = as.character(unlist(stats)),
     stringsAsFactors = FALSE
   )
-  return(transposed_df)
+  additional_stats <- get_additional_stats_for_steckbrief(df, player_name)
+  all_stats <- bind_rows(additional_stats, transposed_df)
+  # formatting
+  percentage_variables <- c(
+    "Siegquote bestes Jahr",
+    "Siegquote schlechtestes Jahr",
+    "Siegquote bestes Team",
+    "Siegquote schlechtestes Team",
+    "Spiele gewonnen (%)",
+    "Saetze gewonnen (%)",
+    "Punkte gewonnen (%)"
+  )
+  all_stats <- format_percent_rows(all_stats, percentage_variables, digits = 1)
+  return(all_stats)
 }
 
 get_df_for_cumulative_match_percentage <- function(df){
