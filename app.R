@@ -20,7 +20,10 @@ source('util.R')
 # Define UI
 ui <- fluidPage(
 
-    # Application title
+  tags$head(
+    tags$link(rel = "shortcut icon", href = "favicon.png")
+  ),
+  # Application title
     titlePanel("Team Cese Statistik"),
 
     # Sidebar with a slider input for number of bins 
