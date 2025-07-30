@@ -89,6 +89,12 @@ ui <- fluidPage(
                              fluidRow(
                                dataTableOutput("table_single_player")
                              ),
+                             fluidRow(
+                               conditionalPanel(
+                                 condition = "input.years.length >= 2",
+                                 plotlyOutput("plot_year_per_player")
+                               )
+                             )
                     ),
                     tabPanel("Satz Histo", plotlyOutput("histogram_sets")),
                     tabPanel("Rohdaten", div(
@@ -275,6 +281,55 @@ server <- function(input, output, session) {
           ticktext = ticktext, 
           tickvals = tickvals,
           tickmode = "array"
+        )
+      )
+  })
+  #
+  output$plot_year_per_player <- renderPlotly({
+    data <- get_df_for_plot_year_per_player(filtered_data(),input$player)
+    #
+    plot1 <- plot_ly(x = data$jahr)
+    plot2 <- plot_ly(x = data$jahr)
+    #
+    x_axis_ticks <- if(length(data$jahr) < 6){
+      list(dtick = 1)
+    }
+    else{
+      list()
+    }
+    #
+    plot1 <- plot1 %>%
+      add_trace(
+        y = data$`Spiele gewonnen (%)`,
+        type = 'scatter',
+        mode = 'lines+markers',
+        name = "Siegprozent"
+        ) %>%
+      layout(
+        xaxis = x_axis_ticks,
+        yaxis = list(tickformat = ".1%")
+      )
+    #
+    plot2 <- plot2 %>%
+      add_trace(
+        y = data$Rang,
+        type = 'scatter',
+        mode = 'lines+markers',
+        name = "Rang") %>%
+      layout(
+        xaxis = x_axis_ticks,
+        yaxis = list(
+          autorange = "reversed",
+          dtick = 1
+        )
+      )
+    plot <- subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
+      layout(
+        legend = list(
+          orientation = 'h',   # horizontal legend
+          x = 0.5,             # center it horizontally
+          xanchor = 'center',
+          y = -0.2             # move it below the plots (adjust as needed)
         )
       )
   })

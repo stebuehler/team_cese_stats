@@ -254,7 +254,7 @@ get_df_for_satz_stacked_bar_chart <- function(df_sets){
   return(df_set_bar_chart)
 }
 
-get_standard_stats <- function(df, groupby, separate_years=FALSE){
+get_standard_stats <- function(df, groupby, separate_years=FALSE, rank_within_years=FALSE){
   if(groupby == "Spieler"){
     df_stats <- get_df_for_player_stats(df)
   } else if(groupby == "Team"){
@@ -280,8 +280,6 @@ get_standard_stats <- function(df, groupby, separate_years=FALSE){
     ) %>%
     as.data.frame() %>%
     arrange(., desc(tiebreaker_column))%>% # order rows
-    mutate(rang = seq.int(nrow(.))) %>% 
-    mutate(Rang = rang) %>% # pretty names
     mutate("Spiele gesamt" = spiele_gesamt) %>%
     mutate("Spiele gewonnen" = spiele_gewonnen) %>%
     mutate("Spiele gewonnen (%)" = percent(spiele_gewonnen_prozent, 1)) %>%
@@ -291,7 +289,20 @@ get_standard_stats <- function(df, groupby, separate_years=FALSE){
     mutate("Punkte gesamt" = punkte_gesamt) %>%
     mutate("Punkte gewonnen" = punkte_gewonnen) %>%
     mutate("Punkte gewonnen (%)" = percent(punkte_gewonnen_prozent, 1)) %>%
-    mutate("Punkte +/-" = 2 * punkte_gewonnen - punkte_gesamt) %>%
+    mutate("Punkte +/-" = 2 * punkte_gewonnen - punkte_gesamt)
+  #
+  if(rank_within_years  == FALSE){
+    stats <- stats %>%
+      mutate(Rang = seq.int(nrow(.)))
+  }
+  else{
+    stats <- stats %>%
+      group_by(jahr) %>%
+      mutate(Rang = rank(-tiebreaker_column, ties.method = "min")) %>%
+      ungroup()
+  }
+  #
+  stats <- stats %>%
     select( # reorder columns
       Rang,
       all_of(group_vars),
@@ -350,6 +361,14 @@ get_additional_stats_for_steckbrief <- function(df, player_name){
     )
   )
   return(df_out)
+}
+
+get_df_for_plot_year_per_player <- function(df, player_name){
+  df_stats <- get_standard_stats(df, "Spieler", separate_years = TRUE, rank_within_years = TRUE) %>%
+    filter(Spieler == player_name) %>%
+    select(jahr, Rang, `Spiele gewonnen (%)`) %>%
+    arrange(jahr)
+  return(df_stats)
 }
 
 get_year_stats <- function(df){
